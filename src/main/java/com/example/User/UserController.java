@@ -1,28 +1,19 @@
 package com.example.User;
 
+
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Sort;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @RestController
 public class UserController {
 
     List <User> users = new ArrayList<>();
+    UserRepository userRepository;
 
-    @GetMapping("users/{age}")
-    public ResponseEntity <List<String>> getUsers(@PathVariable Integer age){
-        List <String> username = new ArrayList<>();
-        for(User user : users){
-            if(Math.abs(user.getAge()-age)<=5){
-                username.add(user.getUsername());
-            }
-        }
-        return ResponseEntity.ok(username);
-    }
 
     @PostMapping("users/create/{username}?{password}/{age}")
     public ResponseEntity<Void> createUser(@PathVariable String username, @PathVariable String password, @PathVariable Integer age,
@@ -68,5 +59,35 @@ public class UserController {
         users.set(id, newUser);
         return ResponseEntity.accepted().build();
     }
+
+    @GetMapping("users/{age}")
+    public ResponseEntity <List<String>> getUsersAge(@PathVariable Integer age){
+        List <String> username = new ArrayList<>();
+        for(User user : users){
+            if(Math.abs(user.getAge()-age)<=5){
+                username.add(user.getUsername());
+            }
+        }
+        return ResponseEntity.ok(username);
+    }
+
+    @GetMapping("users")
+    public ResponseEntity <List<String>> getUsers(@RequestParam String sortBy,
+                                                  @RequestParam String direction){
+        String sortDirection;
+        if(direction.equals("up")){
+            sortDirection = "ASC";
+        } else {
+            sortDirection = "DESC";
+        }
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
+        List <User> sortingUsers = userRepository.findAll(sort);
+        List <String> username = new ArrayList<>();
+        for(User user : sortingUsers){
+            username.add(user.getUsername());
+        }
+        return ResponseEntity.ok(username);
+    }
+
 
 }
