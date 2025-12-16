@@ -32,7 +32,7 @@ public class UserController {
             return ResponseEntity.status(HttpStatusCode.valueOf(400)).build();
         }
         for(User user: users){
-            if(Objects.equals(user.getUsername(), newUser.getUsername())){
+            if(!Objects.equals(user.getUsername(), newUser.getUsername())){
                 return ResponseEntity.status(HttpStatusCode.valueOf(409)).build();
             }
         }
