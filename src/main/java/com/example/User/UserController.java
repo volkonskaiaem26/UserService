@@ -15,11 +15,9 @@ public class UserController {
     UserRepository userRepository;
 
 
-    @PostMapping("users/create/{username}?{password}/{age}")
-    public ResponseEntity<Void> createUser(@PathVariable String username, @PathVariable String password, @PathVariable Integer age,
-                                           @RequestBody String repeatPassword){
-        User newUser = new User(username,password,age);
-        if(!Objects.equals(newUser.getPassword(), repeatPassword)){
+    @PostMapping("users")
+    public ResponseEntity<Void> createUser(@RequestBody CreateUser newUser){
+        if(!newUser.getPassword().equals(newUser.getRepeatPassword())){
             return ResponseEntity.status(HttpStatusCode.valueOf(400)).build();
         }
         for(User user: users){
@@ -27,20 +25,31 @@ public class UserController {
                 return ResponseEntity.status(HttpStatusCode.valueOf(409)).build();
             }
         }
-        users.add(newUser);
+        User user = new User(newUser.getUsername(), newUser.getPassword(), newUser.getAge());
+        users.add(user);
         return ResponseEntity.accepted().build();
     }
 
+    @GetMapping("users")
+    public  ResponseEntity<List<UserInfo>> getUsers(){
+        List <UserInfo> userList = new ArrayList<>();
+        for(User user : users){
+            userList.add(new UserInfo(user.getUsername(), user.getAge()));
+        }
+        return ResponseEntity.ok(userList);
+    }
+
     @GetMapping("users/{id}")
-    public ResponseEntity<String> getUsername(@PathVariable Integer id){
+    public ResponseEntity<UserInfo> getUser(@PathVariable("id") Integer id){
         if(id<0 || id>users.size()-1){
             return ResponseEntity.status(HttpStatusCode.valueOf(404)).build();
         }
-        return ResponseEntity.ok(users.get(id).getUsername());
+        UserInfo userInfo = new UserInfo(users.get(id).getUsername(), users.get(id).getAge());
+        return ResponseEntity.ok(userInfo);
     }
 
     @DeleteMapping("users/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Integer id){
+    public ResponseEntity<Void> deleteUser(@PathVariable ("id") Integer id){
         if(id<0 || id>users.size()-1){
             return ResponseEntity.status(HttpStatusCode.valueOf(404)).build();
         }
@@ -48,27 +57,28 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("users/{id}/{repeatPassword}")
-    public ResponseEntity<Void> updateUser(@PathVariable Integer id,@PathVariable String repeatPassword, @RequestBody User newUser){
+    @PutMapping("users/{id}")
+    public ResponseEntity<Void> updateUser(@PathVariable("id") Integer id, @RequestBody CreateUser newUser){
         if(id<0 || id>users.size()-1){
             return ResponseEntity.status(HttpStatusCode.valueOf(404)).build();
         }
-        if(!Objects.equals(users.get(id).getPassword(), repeatPassword)){
+        if(!newUser.getPassword().equals(newUser.getRepeatPassword())){
             return ResponseEntity.status(HttpStatusCode.valueOf(400)).build();
         }
-        users.set(id, newUser);
+        User user = new User(newUser.getUsername(), newUser.getPassword(), newUser.getAge());
+        users.set(id, user);
         return ResponseEntity.accepted().build();
     }
 
     @GetMapping("users/{age}")
-    public ResponseEntity <List<String>> getUsersAge(@PathVariable Integer age){
-        List <String> username = new ArrayList<>();
+    public ResponseEntity <List<UserInfo>> getUsersAge(@PathVariable Integer age){
+        List <UserInfo> userInfos = new ArrayList<>();
         for(User user : users){
             if(Math.abs(user.getAge()-age)<=5){
-                username.add(user.getUsername());
+                userInfos.add(new UserInfo(user.getUsername(), user.getAge()));
             }
         }
-        return ResponseEntity.ok(username);
+        return ResponseEntity.ok(userInfos);
     }
 
     @GetMapping("users")
@@ -90,4 +100,18 @@ public class UserController {
     }
 
 
+    @GetMapping("users")
+    public  ResponseEntity<List<UserInfo>> getPagingUsers(@RequestParam(value = "numberPage", defaultValue = "0") Integer numberPage,
+                                                          @RequestParam(value = "limitPage", defaultValue = "5") Integer limitPage){
+        List <UserInfo> list = new ArrayList<>();
+        int fromID = limitPage*numberPage;
+        if(fromID>users.size() -1){
+            return ResponseEntity.ok(new ArrayList<>());
+        }
+        List <User> subUser = users.subList(fromID, Math.max(users.size()-1, fromID+limitPage-1));
+        for(User user:subUser){
+            list.add(new UserInfo(user.getUsername(), user.getAge()));
+        }
+        return ResponseEntity.ok(list);
+    }
 }
