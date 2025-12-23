@@ -71,7 +71,7 @@ public class UserController {
     }
 
     @GetMapping("users/{age}")
-    public ResponseEntity <List<UserInfo>> getUsersAge(@PathVariable Integer age){
+    public ResponseEntity <List<UserInfo>> getUsersAge(@PathVariable("age") Integer age){
         List <UserInfo> userInfos = new ArrayList<>();
         for(User user : users){
             if(Math.abs(user.getAge()-age)<=5){
