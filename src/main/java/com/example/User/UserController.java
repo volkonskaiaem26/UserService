@@ -82,7 +82,7 @@ public class UserController {
     }
 
     @GetMapping("users")
-    public ResponseEntity <List<String>> getUsers(@RequestParam String sortBy,
+    public ResponseEntity <List<UserInfo>> getUsersSort(@RequestParam String sortBy,
                                                   @RequestParam String direction){
         String sortDirection;
         if(direction.equals("up")){
@@ -92,9 +92,9 @@ public class UserController {
         }
         Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
         List <User> sortingUsers = userRepository.findAll(sort);
-        List <String> username = new ArrayList<>();
+        List <UserInfo> username = new ArrayList<>();
         for(User user : sortingUsers){
-            username.add(user.getUsername());
+            username.add(new UserInfo(user.getUsername(), user.getAge()));
         }
         return ResponseEntity.ok(username);
     }
