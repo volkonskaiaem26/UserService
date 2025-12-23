@@ -82,15 +82,15 @@ public class UserController {
     }
 
     @GetMapping("users")
-    public ResponseEntity <List<UserInfo>> getUsersSort(@RequestParam String sortBy,
-                                                  @RequestParam String direction){
+    public ResponseEntity <List<UserInfo>> getUsersSort(@RequestParam("sortBy") String sortByParam,
+                                                        @RequestParam String direction){
         String sortDirection;
         if(direction.equals("up")){
             sortDirection = "ASC";
         } else {
             sortDirection = "DESC";
         }
-        Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortByParam);
         List <User> sortingUsers = userRepository.findAll(sort);
         List <UserInfo> username = new ArrayList<>();
         for(User user : sortingUsers){
